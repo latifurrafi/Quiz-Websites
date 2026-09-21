@@ -87,13 +87,7 @@
             See the answers <span class="btn__arrow" aria-hidden="true">↓</span>
           </a>
         {% endif %}
-        {# Clears the session so the next person at this machine starts clean. #}
-        <form method="post" action="{% url 'quiz:reset' %}">
-          {% csrf_token %}
-          <button class="btn btn--ghost" type="submit">
-            Next participant <span class="btn__arrow" aria-hidden="true">→</span>
-          </button>
-        </form>
+        <a class="btn btn--ghost" href="{% url 'quiz:home' %}">Back to home</a>
       </div>
     </div>
   </section>
@@ -174,16 +168,6 @@
           </div>
         </article>
         {% endfor %}
-      </div>
-
-      <div class="review__handover" data-reveal>
-        <p class="review__handover-text">Finished reading? Pass the computer on.</p>
-        <form method="post" action="{% url 'quiz:reset' %}">
-          {% csrf_token %}
-          <button class="btn btn--solid btn--lg" type="submit">
-            Next participant <span class="btn__arrow" aria-hidden="true">→</span>
-          </button>
-        </form>
       </div>
     </div>
   </section>

@@ -1,6 +1,7 @@
 """Django settings for the Daffodil AI Club quiz site.
 
-Set up to run locally: SQLite, Django's own static file handling, debug on.
+Runs locally on SQLite with debug on. On Render, DEBUG switches itself off and
+WhiteNoise serves the static files.
 """
 
 from pathlib import Path
@@ -12,13 +13,32 @@ SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
     "django-insecure-dev-only-key-0a9f83kd-change-if-this-ever-goes-public",
 )
-DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
+# Render sets RENDER=true on every service. Default DEBUG off there, so a
+# stray error page can never leak settings and file paths to visitors.
+ON_RENDER = bool(os.environ.get("RENDER"))
+DEBUG = os.environ.get("DJANGO_DEBUG", "0" if ON_RENDER else "1") == "1"
+
+# A list comprehension cannot also contain loose literal items -- the extra
+# host goes in the default string instead, where it is just another entry.
 ALLOWED_HOSTS = [
-    'quiz-websites-9lj9.onrender.com',
     h.strip()
-    for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(",")
+    for h in os.environ.get(
+        "DJANGO_ALLOWED_HOSTS",
+        "localhost,127.0.0.1,[::1],quiz-websites-9lj9.onrender.com",
+    ).split(",")
     if h.strip()
 ]
+
+# Render hands each service its own public hostname at runtime, so renaming
+# the service or adding a custom domain does not need a code change.
+RENDER_HOST = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
+if RENDER_HOST and RENDER_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_HOST)
+
+# Django 4+ checks the Origin header on every POST. Without this, logging into
+# the admin and submitting the quiz both fail with a CSRF error over HTTPS.
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "[::1]"}
+CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h not in LOCAL_HOSTS]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -32,6 +52,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Gunicorn does not serve static files. Without this the deployed site
+    # loads with no CSS or JavaScript at all.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -82,11 +105,33 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# With the manifest storage, a template referencing a file that was not
+# collected raises a 500. Non-strict mode serves it unhashed instead, so a
+# forgotten collectstatic degrades to a stale cache rather than a dead site.
+WHITENOISE_MANIFEST_STRICT = False
+
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        )
+    },
+}
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Participants are tracked by an attempt token in their session, not by login.
 SESSION_COOKIE_AGE = 60 * 60 * 6
 SESSION_SAVE_EVERY_REQUEST = True
+
+# Render terminates TLS, so cookies can safely be marked secure there.
+if ON_RENDER:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Branding shown in templates
 SITE_NAME = "Daffodil AI Club"
