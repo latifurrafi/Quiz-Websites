@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ site_name }} — Newcomer Quiz{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+
+{# ------------------------------------------------------------------ hero #}
+<section class="hero">
+  <canvas class="hero__canvas" data-starfield aria-hidden="true"></canvas>
+  <div class="glow glow--cyan hero__glow-a" aria-hidden="true"></div>
+  <div class="glow glow--violet hero__glow-b" aria-hidden="true"></div>
+
+  <div class="shell hero__inner">
+    <div class="hero__grid">
+      <div>
+        <p class="eyebrow hero__eyebrow" data-reveal>Daffodil International University · Department of CSE</p>
+
+        <h1 class="display hero__title split">
+          Think you know <em>AI?</em>
+        </h1>
+
+        <p class="lede hero__lede" data-reveal style="--reveal-delay:220ms">
+          {% if quiz %}{{ quiz.intro|default:"Ten questions on the fundamentals. No preparation needed — we just want to see how you think." }}{% else %}A short quiz for everyone joining the club this term.{% endif %}
+        </p>
+
+        <div class="hero__actions" data-reveal style="--reveal-delay:340ms">
+          <a class="btn btn--solid btn--lg" href="#start">
+            Take the quiz <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="btn btn--ghost btn--lg" href="#how">How it works</a>
+        </div>
+      </div>
+
+      <div class="hero__visual" data-reveal="scale" style="--reveal-delay:200ms">
+        <span class="hero__ring" aria-hidden="true"></span>
+        <span class="hero__ring hero__ring--2" aria-hidden="true"></span>
+        <span class="hero__ring hero__ring--3" aria-hidden="true"></span>
+        <span class="hero__orbit" aria-hidden="true"><span class="hero__node"></span></span>
+        <span class="hero__orbit hero__orbit--rev" aria-hidden="true"><span class="hero__node"></span></span>
+        <img class="hero__logo" src="{% static 'img/ai-club-logo.png' %}" alt="Daffodil AI Club">
+      </div>
+    </div>
+  </div>
+
+  <p class="hero__scroll" aria-hidden="true">Scroll</p>
+</section>
+
+{# --------------------------------------------------------------- marquee #}
+<div class="marquee" data-marquee aria-hidden="true">
+  <div class="marquee__track">
+    <span class="marquee__item">Machine Learning</span><span class="marquee__star">✦</span>
+    <span class="marquee__item">Neural Networks</span><span class="marquee__star">✦</span>
+    <span class="marquee__item">Computer Vision</span><span class="marquee__star">✦</span>
+    <span class="marquee__item">Daffodil AI Club</span><span class="marquee__star">✦</span>
+    <span class="marquee__item">Deep Learning</span><span class="marquee__star">✦</span>
+    <span class="marquee__item">NLP</span><span class="marquee__star">✦</span>
+    <span class="marquee__item">Robotics</span><span class="marquee__star">✦</span>
+  </div>
+</div>
+
+{# ----------------------------------------------------------------- stats #}
+<section class="section--tight">
+  <div class="shell">
+    <div class="stats" data-reveal>
+      <div class="stat">
+        <p class="stat__value"><span data-count="{{ question_count }}">0</span></p>
+        <p class="stat__label">Questions</p>
+      </div>
+      <div class="stat">
+        <p class="stat__value">
+          {% if quiz.seconds_per_question %}<span data-count="{{ quiz.seconds_per_question }}" data-count-suffix="s">0</span>{% else %}∞{% endif %}
+        </p>
+        <p class="stat__label">Per question</p>
+      </div>
+      <div class="stat">
+        <p class="stat__value">
+          {% if estimated_minutes %}~<span data-count="{{ estimated_minutes }}">0</span>{% else %}—{% endif %}
+        </p>
+        <p class="stat__label">Minutes total</p>
+      </div>
+      <div class="stat">
+        <p class="stat__value"><span data-count="1">0</span></p>
+        <p class="stat__label">Attempt each</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ----------------------------------------------------------------- about #}
+<section class="section" id="about">
+  <div class="shell">
+    <div class="section__head">
+      <h2 class="display section__title split">A club for people who <em>build.</em></h2>
+      <p class="eyebrow" data-reveal>01 — Who we are</p>
+    </div>
+
+    <div class="about__grid">
+      <div class="about__text" data-reveal>
+        <p class="lede">
+          The Daffodil AI Club is where CSE students go from reading about artificial
+          intelligence to actually shipping it — models, demos, papers and projects
+          you can put your name on.
+        </p>
+        <p class="lede">
+          This quiz is how we say hello. It is not an exam and nothing rides on your
+          score. We just want to know where you are starting from, so we can point you
+          at the right people and the right projects.
+        </p>
+        <div class="pill-row">
+          <span class="pill">Workshops</span>
+          <span class="pill">Project teams</span>
+          <span class="pill">Research reading</span>
+          <span class="pill">Competitions</span>
+          <span class="pill">Mentorship</span>
+        </div>
+      </div>
+
+      <div data-reveal style="--reveal-delay:160ms">
+        <p class="lede">
+          Everyone starts somewhere. Some of our strongest members walked in knowing
+          nothing but curiosity — what mattered was that they kept showing up.
+        </p>
+        <p class="lede" style="margin-top:1.1rem">
+          Answer honestly, take your guess when you are unsure, and enjoy it.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ------------------------------------------------------------ how it works #}
+<section class="section" id="how">
+  <div class="shell">
+    <div class="section__head">
+      <h2 class="display section__title split">Three steps. <em>That's it.</em></h2>
+      <p class="eyebrow" data-reveal>02 — How it works</p>
+    </div>
+
+    <div class="steps">
+      <article class="step" data-reveal>
+        <p class="step__num">01</p>
+        <h3 class="step__title">Tell us your name</h3>
+        <p class="step__body">
+          No sign-up, no password, no email. Type the name you want on your result
+          and you are in.
+        </p>
+      </article>
+
+      <article class="step" data-reveal style="--reveal-delay:120ms">
+        <p class="step__num">02</p>
+        <h3 class="step__title">Answer {{ question_count }} question{{ question_count|pluralize }}</h3>
+        <p class="step__body">
+          {% if quiz.seconds_per_question %}You get {{ quiz.seconds_per_question }} seconds each — enough to think, not enough to look it up.{% else %}Take as long as you like on each one.{% endif %}
+          Pick with your mouse or tap <kbd>A</kbd>–<kbd>D</kbd> on the keyboard.
+        </p>
+      </article>
+
+      <article class="step" data-reveal style="--reveal-delay:240ms">
+        <p class="step__num">03</p>
+        <h3 class="step__title">See how you did</h3>
+        <p class="step__body">
+          Your score appears the moment you finish{% if quiz.show_answer_review %}, along with every
+          correct answer and why it is right{% endif %}.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+{# ----------------------------------------------------------------- start #}
+<section class="section start" id="start">
+  <div class="glow glow--violet start__glow" aria-hidden="true"></div>
+
+  <div class="shell">
+    <div class="start__card" data-reveal="scale">
+      <img class="start__mark" src="{% static 'img/ai-club-logo.png' %}" alt="">
+
+      {% if quiz and question_count %}
+        <h2 class="start__title">{{ quiz.title }}</h2>
+        <p class="start__intro">
+          Ready when you are. The timer starts on the first question.
+        </p>
+
+        <form class="start__form" method="post" action="{% url 'quiz:start' %}" novalidate>
+          {% csrf_token %}
+          <div class="field">
+            <label class="visually-hidden" for="{{ form.name.id_for_label }}">Your full name</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <ul class="errorlist">
+                {% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+
+          <button class="btn btn--solid btn--lg" type="submit">
+            Begin <span class="btn__arrow" aria-hidden="true">→</span>
+          </button>
+        </form>
+
+        <div class="start__meta">
+          <span class="start__meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            {{ question_count }} question{{ question_count|pluralize }}
+          </span>
+          {% if quiz.seconds_per_question %}
+          <span class="start__meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            {{ quiz.seconds_per_question }}s each
+          </span>
+          {% endif %}
+          <span class="start__meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+            No account needed
+          </span>
+        </div>
+
+      {% else %}
+        <h2 class="start__title">No quiz is live yet</h2>
+        <p class="start__intro">
+          An admin needs to publish a quiz before newcomers can take it.
+        </p>
+        <div class="start__empty">
+          Load the starter questions with <code>python manage.py seed_quiz</code>,
+          or create your own in the <a href="/admin/" style="color:var(--cyan)">admin panel</a>.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

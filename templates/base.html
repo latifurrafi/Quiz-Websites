@@ -1,0 +1,85 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05071a">
+  <title>{% block title %}{{ site_name }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}The Daffodil AI Club newcomer quiz — ten questions on the fundamentals of artificial intelligence.{% endblock %}">
+
+  <link rel="icon" href="{% static 'img/ai-club-logo.png' %}" type="image/png">
+  <link rel="apple-touch-icon" href="{% static 'img/ai-club-logo.png' %}">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap">
+
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block styles %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="preloader" data-preloader aria-hidden="true">
+    <div class="preloader__inner">
+      <img class="preloader__mark" src="{% static 'img/ai-club-logo.png' %}" alt="">
+      <div class="preloader__bar"><div class="preloader__fill"></div></div>
+    </div>
+  </div>
+
+  <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
+
+  {% block nav %}
+  <header class="nav" data-nav>
+    <div class="shell nav__inner">
+      <a class="brand" href="{% url 'quiz:home' %}">
+        <img class="brand__mark" src="{% static 'img/ai-club-logo.png' %}" alt="">
+        <span class="brand__text">
+          <span class="brand__name">{{ site_name }}</span>
+          <span class="brand__sub">{{ site_tagline }}</span>
+        </span>
+      </a>
+
+      <nav class="nav__links" aria-label="Primary">
+        <a class="nav__link" href="{% url 'quiz:home' %}#about">About</a>
+        <a class="nav__link" href="{% url 'quiz:home' %}#how">How it works</a>
+        <a class="nav__link" href="{% url 'quiz:home' %}#start">The quiz</a>
+      </nav>
+
+      <a class="btn btn--ghost" href="{% url 'quiz:home' %}#start">
+        Start quiz <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </header>
+  {% endblock %}
+
+  <main id="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="footer">
+    <div class="shell">
+      <div class="footer__top">
+        <p class="footer__word display" data-reveal>
+          Curious?<br><em>Come build.</em>
+        </p>
+        <div class="footer__logos" data-reveal style="--reveal-delay:120ms">
+          <img class="footer__logo footer__logo--daffodil" src="{% static 'img/daffodil-logo.svg' %}" alt="Daffodil International University">
+          <img class="footer__logo" src="{% static 'img/cse-logo.png' %}" alt="Department of CSE">
+          <img class="footer__logo" src="{% static 'img/ai-club-logo.png' %}" alt="Daffodil AI Club">
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© {% now "Y" %} {{ site_name }} — {{ site_tagline }}</span>
+        <span>Daffodil International University</span>
+      </div>
+    </div>
+  </footer>
+  {% endblock %}
+
+  <script src="{% static 'js/site.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

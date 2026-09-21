@@ -1,0 +1,26 @@
+# Local Python environment
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Built and local-only artefacts -- the image makes its own
+staticfiles/
+db.sqlite3
+db.sqlite3-journal
+media/
+data/
+
+# Secrets stay out of the image
+.env
+
+# Repo and editor noise
+.git/
+.gitignore
+.github/
+.claude/
+.DS_Store
+*.log
+
+# Docs are not needed at runtime
+README.md

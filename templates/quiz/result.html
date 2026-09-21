@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ attempt.name }} scored {{ attempt.score }}/{{ attempt.total }} — {{ site_name }}{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'css/quiz.css' %}">
+{% endblock %}
+
+{% block content %}
+<div data-result
+     data-score="{{ attempt.score }}"
+     data-total="{{ attempt.total }}"
+     data-pct="{{ attempt.percentage }}"
+     data-passed="{% if attempt.passed %}1{% else %}0{% endif %}">
+
+  <canvas class="confetti" data-confetti aria-hidden="true"></canvas>
+
+  {# ------------------------------------------------------------- headline #}
+  <section class="result">
+    <div class="glow glow--cyan result__glow-a" aria-hidden="true"></div>
+
+    <div class="shell result__inner">
+      <p class="eyebrow result__eyebrow" data-reveal>Quiz complete</p>
+
+      <h1 class="result__headline split">{{ attempt.headline }}</h1>
+
+      <p class="result__name" data-reveal style="--reveal-delay:200ms">
+        <span>Congratulations</span>
+        {{ attempt.name }}
+      </p>
+
+      {# ----------------------------------------------------------- ring #}
+      <div class="ring" data-reveal="scale" style="--reveal-delay:120ms"
+           role="img"
+           aria-label="You scored {{ attempt.score }} out of {{ attempt.total }}, {{ attempt.percentage }} percent">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#4fc8ea"/>
+              <stop offset="100%" stop-color="#a88be8"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring__track" cx="100" cy="100" r="90"></circle>
+          <circle class="ring__bar" data-ring-bar cx="100" cy="100" r="90"></circle>
+        </svg>
+        <div class="ring__inner">
+          <p class="ring__score" data-ring-score>0<span>/{{ attempt.total }}</span></p>
+          <p class="ring__pct">{{ attempt.percentage }}% correct</p>
+        </div>
+      </div>
+
+      <div data-reveal style="--reveal-delay:260ms">
+        {% if attempt.passed %}
+          <p class="result__badge is-pass">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Passed
+          </p>
+        {% else %}
+          <p class="result__badge is-fail">Below {{ quiz.pass_percentage }}% — worth another look</p>
+        {% endif %}
+      </div>
+
+      {# ---------------------------------------------------------- stats #}
+      <div class="result__stats" data-reveal style="--reveal-delay:320ms">
+        <div class="rstat">
+          <p class="rstat__value is-good">{{ attempt.correct_count }}</p>
+          <p class="rstat__label">Correct</p>
+        </div>
+        <div class="rstat">
+          <p class="rstat__value is-bad">{{ attempt.missed_count }}</p>
+          <p class="rstat__label">Missed</p>
+        </div>
+        <div class="rstat">
+          <p class="rstat__value">{{ attempt.percentage }}%</p>
+          <p class="rstat__label">Accuracy</p>
+        </div>
+        <div class="rstat">
+          <p class="rstat__value">{{ attempt.duration_display }}</p>
+          <p class="rstat__label">Time taken</p>
+        </div>
+      </div>
+
+      <div class="result__actions" data-reveal style="--reveal-delay:400ms">
+        {% if review %}
+          <a class="btn btn--solid" href="#review">
+            See the answers <span class="btn__arrow" aria-hidden="true">↓</span>
+          </a>
+        {% endif %}
+        <a class="btn btn--ghost" href="{% url 'quiz:home' %}">Back to the club</a>
+      </div>
+    </div>
+  </section>
+
+  {# --------------------------------------------------------------- review #}
+  {% if review %}
+  <hr class="rule">
+
+  <section class="review" id="review">
+    <div class="shell">
+      <div class="review__head">
+        <h2 class="review__title" data-reveal>Every question, reviewed</h2>
+        <button class="btn btn--ghost" type="button" data-expand-all>Expand all</button>
+      </div>
+
+      <div class="review__list">
+        {% for row in review %}
+        <article class="ritem"
+                 data-review-item
+                 data-correct="{% if row.is_correct %}1{% else %}0{% endif %}"
+                 data-reveal
+                 style="--reveal-delay:{{ forloop.counter0|add:forloop.counter0 }}0ms">
+
+          <button class="ritem__toggle"
+                  type="button"
+                  data-review-toggle
+                  aria-expanded="false"
+                  aria-controls="review-panel-{{ forloop.counter }}">
+            {% if row.is_correct %}
+              <span class="ritem__flag is-correct" aria-hidden="true">✓</span>
+            {% elif row.skipped %}
+              <span class="ritem__flag is-skipped" aria-hidden="true">–</span>
+            {% else %}
+              <span class="ritem__flag is-wrong" aria-hidden="true">✕</span>
+            {% endif %}
+
+            <span class="ritem__q">
+              <span class="ritem__n">
+                Question {{ forloop.counter }} ·
+                {% if row.is_correct %}Correct{% elif row.skipped %}Not answered{% else %}Incorrect{% endif %}
+              </span>
+              {{ row.question.text }}
+            </span>
+
+            <svg class="ritem__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <div class="ritem__panel" data-review-panel id="review-panel-{{ forloop.counter }}" aria-hidden="true">
+            <div>
+              <div class="ritem__body">
+                {% if row.skipped %}
+                  <p class="rline rline--skipped">
+                    <span class="rline__tag">You</span>
+                    <span>Ran out of time — no answer recorded.</span>
+                  </p>
+                {% elif not row.is_correct %}
+                  <p class="rline rline--given">
+                    <span class="rline__tag">You</span>
+                    <span>{{ row.given.text }}</span>
+                  </p>
+                {% endif %}
+
+                {% if row.correct %}
+                  <p class="rline rline--correct">
+                    <span class="rline__tag">Answer</span>
+                    <span>{{ row.correct.text }}</span>
+                  </p>
+                {% endif %}
+
+                {% if row.question.explanation %}
+                  <p class="rexplain">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
+                    <span>{{ row.question.explanation }}</span>
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/result.js' %}" defer></script>
+{% endblock %}

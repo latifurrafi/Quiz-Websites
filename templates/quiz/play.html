@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ quiz.title }} — {{ site_name }}{% endblock %}
+{% block body_class %}play-body{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'css/quiz.css' %}">
+{% endblock %}
+
+{# The quiz gets its own chrome: a progress bar, who is playing, and the timer. #}
+{% block nav %}
+<header class="qbar">
+  <div class="shell qbar__inner">
+    <div class="qbar__who">
+      <span class="qbar__avatar" aria-hidden="true">{{ attempt.name|slice:":1"|upper }}</span>
+      <span>
+        <span class="qbar__name">{{ attempt.name }}</span><br>
+        <span class="qbar__role">In progress</span>
+      </span>
+    </div>
+
+    <p class="qbar__count" data-counter aria-live="polite">
+      <b>01</b><span> / {{ quiz.question_count|stringformat:"02d" }}</span>
+    </p>
+
+    {% if seconds_per_question %}
+    <div class="timer" data-timer role="timer" aria-label="Time left on this question">
+      <svg viewBox="0 0 54 54" aria-hidden="true">
+        <circle class="timer__track" cx="27" cy="27" r="24"></circle>
+        <circle class="timer__bar" data-timer-bar cx="27" cy="27" r="24"></circle>
+      </svg>
+      <span class="timer__num" data-timer-num>{{ seconds_per_question }}</span>
+    </div>
+    {% else %}
+    <span class="qbar__role">No time limit</span>
+    {% endif %}
+  </div>
+
+  <div class="qprogress"><div class="qprogress__fill" data-progress></div></div>
+</header>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block content %}
+<section class="qstage"
+         data-quiz
+         data-seconds="{{ seconds_per_question }}"
+         data-submit-url="{{ submit_url }}"
+         data-result-url="{{ result_url }}"
+         data-csrf="{{ csrf_token }}">
+
+  <div class="glow glow--cyan qstage__glow" aria-hidden="true"></div>
+
+  <div class="shell">
+    <article class="qcard" data-card>
+      <p class="eyebrow qcard__index" data-index>Question 1</p>
+
+      <h1 class="qcard__question" data-question aria-live="polite">&nbsp;</h1>
+
+      <div class="qoptions" data-options role="group" aria-label="Answer options"></div>
+
+      <div class="qfoot">
+        <p class="qhint">
+          Press <kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd> to choose · <kbd>Enter</kbd> to continue
+        </p>
+
+        <div class="qdots" data-dots aria-hidden="true"></div>
+
+        <button class="btn btn--solid" type="button" data-next disabled>
+          <span data-next-label>Next question</span>
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </article>
+  </div>
+</section>
+
+{# Questions and options only — the answer key stays on the server. #}
+{{ questions|json_script:"quiz-data" }}
+
+<div class="qsending" data-sending aria-live="assertive">
+  <div class="qsending__inner">
+    <div class="qsending__spinner" aria-hidden="true"></div>
+    <p class="eyebrow">Marking your answers</p>
+    <p class="qsending__error" data-sending-error></p>
+    <button class="btn btn--ghost" type="button" data-retry hidden>Try again</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/quiz.js' %}" defer></script>
+{% endblock %}
