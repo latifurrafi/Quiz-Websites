@@ -602,3 +602,24 @@
   .rline { flex-direction: column; gap: 0.3rem; padding: 0.65rem 0.8rem; }
   .rline__tag { min-width: 0; }
 }
+
+/* ---------------------------------------------------- hand-over (shared PC) */
+/* On one shared computer the most important control on this page is "the next
+   person's turn", so it gets its own block at the end of the review. */
+.review__handover {
+  display: grid;
+  justify-items: center;
+  gap: 1.1rem;
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--line-soft);
+  text-align: center;
+}
+
+.review__handover-text {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--cream-dim);
+}
+
+.result__actions form { display: contents; }

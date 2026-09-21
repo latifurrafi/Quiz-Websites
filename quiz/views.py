@@ -171,6 +171,19 @@ def submit(request, token):
     return JsonResponse({"ok": True, "redirect": result_url})
 
 
+@require_POST
+def reset(request):
+    """Hand the machine to the next participant.
+
+    On a shared computer one browser session is reused all day. Clearing the
+    remembered attempt tokens means the next person cannot reach the previous
+    person's result by going back, and starts from a clean screen.
+    """
+    request.session.pop(SESSION_KEY, None)
+    request.session.cycle_key()
+    return redirect("quiz:home")
+
+
 def result(request, token):
     """Congratulations screen, plus the answer review."""
     attempt = get_object_or_404(Attempt.objects.select_related("quiz"), token=token)

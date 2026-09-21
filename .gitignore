@@ -15,5 +15,8 @@ media/
 # Environment
 .env
 
+# Editor / agent tooling
+.claude/
+
 # macOS
 .DS_Store

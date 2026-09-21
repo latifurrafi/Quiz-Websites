@@ -1,9 +1,0 @@
-# Dependencies for hosting the site on a platform with a managed Postgres.
-# Local and Docker runs use plain requirements.txt and stay on SQLite --
-# psycopg is deliberately not in there, so a student laptop never has to
-# build or download it just to run the quiz locally.
-
--r requirements.txt
-
-dj-database-url>=2.3
-psycopg[binary]>=3.2

@@ -181,6 +181,72 @@ class QuizFlowTests(TestCase):
         res = self.client.get(reverse("quiz:play", args=[attempt.token]))
         self.assertRedirects(res, reverse("quiz:result", args=[attempt.token]))
 
+    def test_next_participant_hides_the_previous_result(self):
+        """The whole point on a shared computer: no peeking at the last person."""
+        attempt = self._start("Alice")
+        self.client.post(
+            reverse("quiz:submit", args=[attempt.token]),
+            data=json.dumps({"answers": self._answers(attempt, 4)}),
+            content_type="application/json",
+        )
+        # Alice can see her own result.
+        self.assertEqual(
+            self.client.get(reverse("quiz:result", args=[attempt.token])).status_code, 200
+        )
+
+        # She hands the machine over.
+        res = self.client.post(reverse("quiz:reset"))
+        self.assertRedirects(res, reverse("quiz:home"))
+
+        # The next person, same browser, cannot reach her result or her quiz.
+        self.assertRedirects(
+            self.client.get(reverse("quiz:result", args=[attempt.token])),
+            reverse("quiz:home"),
+        )
+        self.assertRedirects(
+            self.client.get(reverse("quiz:play", args=[attempt.token])),
+            reverse("quiz:home"),
+        )
+
+    def test_next_participant_keeps_the_stored_result(self):
+        """Clearing the session must not delete anything the club needs."""
+        attempt = self._start("Bob")
+        self.client.post(
+            reverse("quiz:submit", args=[attempt.token]),
+            data=json.dumps({"answers": self._answers(attempt, 2)}),
+            content_type="application/json",
+        )
+        self.client.post(reverse("quiz:reset"))
+
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.score, 2)
+        self.assertTrue(attempt.is_complete)
+        self.assertEqual(Attempt.objects.count(), 1)
+
+    def test_next_participant_can_take_it_again(self):
+        """Back-to-back runs on the same browser produce separate attempts."""
+        first = self._start("Carol")
+        self.client.post(
+            reverse("quiz:submit", args=[first.token]),
+            data=json.dumps({"answers": self._answers(first, 4)}),
+            content_type="application/json",
+        )
+        self.client.post(reverse("quiz:reset"))
+
+        second = self._start("Dave")
+        self.assertNotEqual(first.token, second.token)
+        self.assertEqual(
+            self.client.get(reverse("quiz:play", args=[second.token])).status_code, 200
+        )
+        self.assertEqual(Attempt.objects.count(), 2)
+        self.assertEqual(
+            sorted(Attempt.objects.values_list("name", flat=True)), ["Carol", "Dave"]
+        )
+
+    def test_reset_requires_post(self):
+        """A GET must not clear the session -- link prefetching would wipe it."""
+        self.assertEqual(self.client.get(reverse("quiz:reset")).status_code, 405)
+
     def test_malformed_payload_is_rejected(self):
         attempt = self._start()
         res = self.client.post(
